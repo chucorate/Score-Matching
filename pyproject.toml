@@ -1,0 +1,37 @@
+[project]
+name = "score-matching"
+version = "0.1.0"
+description = "Tarea 3 - Score Matching"
+readme = "README.md"
+requires-python = "==3.11.15"
+dependencies = [
+    "numpy>=2.4.4",
+    "torch>=2.12.1",
+]
+
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cu130"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.1.0",
+    "ruff>=0.15.20",
+]
+
+[tool.ruff]
+src = ["src"]
+
+[tool.ruff.lint]
+extend-select = ["PLC0415"]
+
+[tool.mypy]
+files = ["src"]
+
+[[tool.mypy.overrides]]
+module = [
+    "torchvision",
+    "torchvision.*",
+    "torch",
+    "torch.*",
+]
+ignore_missing_imports = true
