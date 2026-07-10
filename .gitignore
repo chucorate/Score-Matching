@@ -9,5 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
+.mypy_cache
+.ruff_cache
+
 # Datos de entrenamiento, no se suben a la prueba
 data/*
