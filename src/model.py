@@ -8,12 +8,32 @@ class Modelo(nn.Module):
         def time_embedding(self, t): ...     # embedding temporal (auxiliar)
 """
 
+from typing import Callable
+
 import numpy as np
 import torch
 import torch.nn as nn
 
 
+def alpha_defecto(t: torch.Tensor) -> torch.Tensor:
+    return t
+
+
+def alpha_derivada_defecto(t: torch.Tensor) -> torch.Tensor:
+    return torch.ones_like(t)
+
+
+def beta_defecto(t: torch.Tensor) -> torch.Tensor:
+    return 1 - t
+
+
+def beta_derivada_defecto(t: torch.Tensor) -> torch.Tensor:
+    return -torch.ones_like(t)
+
+
 class Modelo(nn.Module):
+    # Arquitectura de la red ====================================================
+
     def __init__(
         self,
         *,
@@ -23,9 +43,19 @@ class Modelo(nn.Module):
         embedding_dim: int = 256,
         n_labels: int = 10,
         cfg: bool = True,
+        alpha: Callable[[torch.Tensor], torch.Tensor] = alpha_defecto,
+        beta: Callable[[torch.Tensor], torch.Tensor] = beta_defecto,
+        alpha_derivada: Callable[[torch.Tensor], torch.Tensor] = alpha_derivada_defecto,
+        beta_derivada: Callable[[torch.Tensor], torch.Tensor] = beta_derivada_defecto,
         **config,
     ):
         super().__init__()
+
+        # Funciones alpha y beta usadas para el entrenamiento
+        self.alpha = alpha
+        self.beta = beta
+        self.alpha_derivada = alpha_derivada
+        self.beta_derivada = beta_derivada
 
         # Embeddings
         self.embedding_dim = embedding_dim
@@ -147,13 +177,12 @@ class Modelo(nn.Module):
         d3 = self.decoder_3(torch.cat([u3, e3], dim=1))
         u2 = self.upscale_2(d3)
         d2 = self.decoder_2(
-            torch.cat([u2, e2], dim=1)
-            + torch.cat([t_emb2, y_emb2], dim=1)  # incrustamos embeddings en subida
+            torch.cat(
+                [u2 + t_emb2 + y_emb2, e2], dim=1
+            )  # incrustamos embeddings en subida
         )
         u1 = self.upscale_1(d2)
-        d1 = self.decoder_1(
-            torch.cat([u1, e1], dim=1) + torch.cat([t_emb1, y_emb1], dim=1)
-        )
+        d1 = self.decoder_1(torch.cat([u1 + t_emb1 + y_emb1, e1], dim=1))
 
         return self.final(d1)
 
@@ -170,3 +199,40 @@ class Modelo(nn.Module):
             emb = torch.nn.functional.pad(emb, (0, 1))
 
         return emb
+
+    # Camino de probabilidad ====================================================
+    # incrustamos lo relacionado al camino de probabilidad en model
+    # por temas de conveniencia al importar y para evitar llamar muchos argumentos
+    # extra en otras funciones (pues se revisarán de forma semiautomática),
+    # pero en estricto rigor esto no es parte de la red
+
+    def score_condicional(
+        self,
+        x: torch.Tensor,
+        t: torch.Tensor,
+        z: torch.Tensor,
+    ) -> torch.Tensor:
+        return -(x - self.alpha(t) * z) / (self.beta(t)) ** 2
+
+    def a(self, t: torch.Tensor) -> torch.Tensor:
+        return self.alpha_derivada(t) / self.alpha(t)
+
+    def b(self, t: torch.Tensor) -> torch.Tensor:
+        alpha = self.alpha(t)
+        beta = self.beta(t)
+
+        return (
+            self.alpha_derivada(t) * beta**2 - self.beta_derivada(t) * beta * alpha
+        ) / alpha
+
+    def drift(
+        self,
+        score: torch.Tensor,
+        x: torch.Tensor,
+        t: torch.Tensor,
+    ) -> torch.Tensor:
+        """Calcula el drift en función del score."""
+        a = self.a(t).view(-1, 1, 1, 1)
+        b = self.b(t).view(-1, 1, 1, 1)
+
+        return a * x + b * score

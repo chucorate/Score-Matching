@@ -15,10 +15,12 @@ dataset_entrenamiento = torchvision.datasets.MNIST(
     root=DATA_DIR / "data_entrenamiento",
     train=True,
     download=True,
+    transform=torchvision.transforms.ToTensor(),
 )
 
 dataset_prueba = torchvision.datasets.MNIST(
     root=DATA_DIR / "data_prueba",
     train=False,
     download=True,
+    transform=torchvision.transforms.ToTensor(),
 )
