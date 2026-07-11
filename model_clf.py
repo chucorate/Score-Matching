@@ -61,3 +61,4 @@ class Clasificador(nn.Module):
         logits = self.fc(x)
 
         return logits
+
