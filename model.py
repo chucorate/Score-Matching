@@ -16,19 +16,19 @@ import torch.nn as nn
 
 
 def alpha_defecto(t: torch.Tensor) -> torch.Tensor:
-    return t
+    return torch.sin(torch.pi * t / 2)
 
 
 def alpha_derivada_defecto(t: torch.Tensor) -> torch.Tensor:
-    return torch.ones_like(t)
+    return 0.5 * torch.pi * torch.cos(torch.pi * t / 2)
 
 
 def beta_defecto(t: torch.Tensor) -> torch.Tensor:
-    return 1 - t
+    return torch.cos(torch.pi * t / 2)
 
 
 def beta_derivada_defecto(t: torch.Tensor) -> torch.Tensor:
-    return -torch.ones_like(t)
+    return -0.5 * torch.pi * torch.sin(torch.pi * t / 2)
 
 
 class Modelo(nn.Module):
@@ -139,7 +139,7 @@ class Modelo(nn.Module):
     def forward(
         self, x: torch.Tensor, t: torch.Tensor, y: torch.Tensor | None = None
     ) -> torch.Tensor:
-        """Devuelve S_theta(x, y, t) aprendido."""
+        """Devuelve eps_theta(x, y, t) aprendido."""
         n_batches = x.shape[0]
         if y is None:
             if not self.cfg:
@@ -212,18 +212,25 @@ class Modelo(nn.Module):
         t: torch.Tensor,
         z: torch.Tensor,
     ) -> torch.Tensor:
-        return -(x - self.alpha(t) * z) / (self.beta(t)) ** 2
+        """Devuelve el score condicional de forma explícita."""
+        alpha = self.alpha(t).view(-1, 1, 1, 1)
+        beta = self.beta(t).view(-1, 1, 1, 1)
+
+        return -(x - alpha * z) / (beta**2 + 1e-5)
+
+    def score(self, x, t, y=None):
+        """Devuelve el score_theta en función del error eps_theta aprendido."""
+        eps = self(x, t, y)
+        beta = self.beta(t).view(-1, 1, 1, 1)
+        return -eps / (beta + 1e-5)
 
     def a(self, t: torch.Tensor) -> torch.Tensor:
-        return self.alpha_derivada(t) / self.alpha(t)
+        return self.alpha_derivada(t) / (self.alpha(t) + 1e-5)
 
     def b(self, t: torch.Tensor) -> torch.Tensor:
-        alpha = self.alpha(t)
         beta = self.beta(t)
 
-        return (
-            self.alpha_derivada(t) * beta**2 - self.beta_derivada(t) * beta * alpha
-        ) / alpha
+        return self.a(t) * beta**2 - self.beta_derivada(t) * beta
 
     def drift(
         self,
