@@ -98,7 +98,10 @@ def sample(
 
 
 def exportar_grilla_muestras(
-    samples: torch.Tensor, labels: torch.Tensor, ruta_salida: Path, title: str,
+    samples: torch.Tensor,
+    labels: torch.Tensor,
+    ruta_salida: Path,
+    title: str,
 ) -> None:
     samples_np = samples.squeeze(1).cpu().numpy()
     labels_np = labels.cpu().numpy()
@@ -121,14 +124,17 @@ def exportar_grilla_muestras(
         f"Muestras finales generadas, usando difusión {title}",
         fontsize=14,
         weight="bold",
-        y=1.025
+        y=1.025,
     )
     plt.savefig(ruta_salida, bbox_inches="tight", dpi=300)
     plt.close()
 
 
 def exportar_proceso_muestreo(
-    imgs_per_step: list[np.ndarray], labels: torch.Tensor, ruta_salida: Path, title: str,
+    imgs_per_step: list[np.ndarray],
+    labels: torch.Tensor,
+    ruta_salida: Path,
+    title: str,
 ) -> None:
     proceso_np = np.stack(imgs_per_step, axis=0).squeeze(2)
     labels_np = labels.cpu().numpy()
@@ -168,7 +174,7 @@ def exportar_proceso_muestreo(
         f"Proceso de generación de imágenes, usando difusión {title}",
         fontsize=19,
         weight="bold",
-        y=1.025
+        y=1.025,
     )
     plt.savefig(ruta_salida, bbox_inches="tight", dpi=300)
     plt.close()
@@ -182,7 +188,9 @@ if __name__ == "__main__":
 
     OUTPUT_PATH = Path("outputs")
     SEED = 42
-    sigma = lambda t: 0.5 * torch.ones_like(t)  # el sigma que mejores resultados produjo, escogido experimentalmente
+    sigma = lambda t: (
+        0.5 * torch.ones_like(t)
+    )  # el sigma que mejores resultados produjo, escogido experimentalmente
 
     torch.manual_seed(SEED)
     torch.backends.cudnn.deterministic = True
@@ -231,7 +239,10 @@ if __name__ == "__main__":
     )
 
     exportar_proceso_muestreo(
-        proceso, labels, OUTPUT_PATH / "proceso_difusion_cond.png", title="condicional",
+        proceso,
+        labels,
+        OUTPUT_PATH / "proceso_difusion_cond.png",
+        title="condicional",
     )
 
     # =====================================
@@ -273,5 +284,8 @@ if __name__ == "__main__":
     )
 
     exportar_proceso_muestreo(
-        proceso, labels, OUTPUT_PATH / "proceso_difusion_cfg.png", title="CFG",
+        proceso,
+        labels,
+        OUTPUT_PATH / "proceso_difusion_cfg.png",
+        title="CFG",
     )
