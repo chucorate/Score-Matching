@@ -146,12 +146,12 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--label-dropout", type=float, default=0.3)
-    parser.add_argument("--out", type=Path, default=Path("data"))
+    parser.add_argument("--out", type=Path, default=Path("outputs"))
 
     args = parser.parse_args()
 
-    DATA_PATH = Path(args.out)
-    DATA_PATH.mkdir(parents=True, exist_ok=True)
+    OUTPUT_PATH = Path(args.out)
+    OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
 
     device = torch.device(args.device)
 
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     )
 
     dataset_mnist = torchvision.datasets.MNIST(
-        root=DATA_PATH / "data_entrenamiento",
+        root=Path("data") / "data_entrenamiento",
         train=True,
         transform=transform,
         download=False,
@@ -202,7 +202,7 @@ if __name__ == "__main__":
 
     torch.save(
         obj={"model_config": CONFIGURACION, "model_state": model.state_dict()},
-        f=DATA_PATH / f"{nombre_guardado}.pt",
+        f=OUTPUT_PATH / f"{nombre_guardado}.pt",
     )
 
-    guardar_historial(historial, DATA_PATH / f"{nombre_guardado}_perdida.png")
+    guardar_historial(historial, OUTPUT_PATH / f"{nombre_guardado}_perdida.png")
