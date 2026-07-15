@@ -110,7 +110,7 @@ def exportar_grilla_muestras(
     nrows, ncols = 2, 5
     fig = plt.figure(figsize=(14, 7))
     subfigs = fig.subfigures(nrows, ncols, hspace=0.00)
-    subfigs_flat = subfigs.flatten()
+    subfigs_flat = subfigs.flatten()  # type: ignore
 
     for i in range(num_images):
         sf = subfigs_flat[i]
@@ -148,7 +148,7 @@ def exportar_proceso_muestreo(
     fig.subplots_adjust(left=0.2, top=0.90)
 
     for idx_img in range(num_imagenes):
-        sf = subfigs[idx_img]
+        sf = subfigs[idx_img]  # type: ignore
         sf.suptitle(
             f"Evolución Clase: {labels_np[idx_img]}",
             fontsize=11,
