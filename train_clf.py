@@ -105,7 +105,10 @@ def train(
         running_loss, correct, total = 0.0, 0, 0
 
         for inputs, targets in train_loader:
-            inputs, targets = inputs.to(device, non_blocking=True), targets.to(device, non_blocking=True)
+            inputs, targets = (
+                inputs.to(device, non_blocking=True),
+                targets.to(device, non_blocking=True),
+            )
             optimizer.zero_grad()
 
             # Autocast para acelerar hardware NVIDIA moderno (Precisión Mixta)
