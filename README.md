@@ -97,14 +97,11 @@ Este script:
 
 - carga outputs/modelo_cond.pt para generar muestras en modo condicional,
 - carga outputs/modelo_cfg.pt para generar muestras en modo CFG,
-- guarda las grillas resultantes en outputs y export_test.
 
 Archivos generados:
 
 - outputs/muestras_difusion_cond.png
 - outputs/proceso_difusion_cond.png
-- export_test/muestras_difusion_cfg.png
-- export_test/proceso_difusion_cfg.png
 
 ## Resumen de comandos recomendados
 
