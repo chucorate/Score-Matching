@@ -20,6 +20,12 @@ Los scripts esperan que los datos de MNIST estén disponibles en:
 - data/data_entrenamiento
 - data/data_prueba
 
+Para descargarlos, se debe usar el siguiente comando:
+
+```bash
+python download_data.py
+```
+
 ## 1. Entrenamiento del clasificador auxiliar
 
 Este paso entrena el clasificador auxiliar y guarda los resultados en la carpeta outputs.
@@ -107,6 +113,7 @@ Archivos generados:
 
 ```bash
 pip install -r requirements.txt
+python download_data.py
 python train_clf.py
 python train.py --label-dropout 0.0
 python train.py
